@@ -1,0 +1,11 @@
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\bin\Debug\netcoreapp2.0\samplecoreapp.deps.json
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\bin\Debug\netcoreapp2.0\samplecoreapp.runtimeconfig.json
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\bin\Debug\netcoreapp2.0\samplecoreapp.runtimeconfig.dev.json
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\bin\Debug\netcoreapp2.0\samplecoreapp.dll
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\bin\Debug\netcoreapp2.0\samplecoreapp.pdb
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\obj\Debug\netcoreapp2.0\samplecoreapp.csproj.CoreCompileInputs.cache
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\obj\Debug\netcoreapp2.0\samplecoreapp.AssemblyInfoInputs.cache
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\obj\Debug\netcoreapp2.0\samplecoreapp.AssemblyInfo.cs
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\obj\Debug\netcoreapp2.0\samplecoreapp.dll
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\obj\Debug\netcoreapp2.0\samplecoreapp.pdb
+C:\Users\shawngib\Documents\Templates\ACS\_output\Kube_OMS\samplecoreapp\obj\Debug\netcoreapp2.0\samplecoreapp.csprojResolveAssemblyReference.cache

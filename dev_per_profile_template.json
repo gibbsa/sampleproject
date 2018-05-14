@@ -1,0 +1,1831 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appServicePlan01ID": {
+      "defaultValue": "",
+      "type": "string",
+      "metadata": {
+        "description": "This is the full resource ID in azure that the Apps should belong to. Must be provided from previous deployment."
+      }
+    },
+    "storageAccount01Name": {
+      "type": "string",
+      "metadata": {
+        "description": "The storage account that web jobs (including letsencrypt) will use to store assets"
+      }
+    },
+    "storageAccount01ResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the resource group containing the shared storage account"
+      }
+    },
+    "sasAppLogsTokenURI": {
+      "defaultValue": "",
+      "type": "securestring",
+      "metadata": {
+        "description": "The full SAS token to be used by each application to write application/HTTP logs to the storage account."
+      }
+    },
+    "emailDropStorageQueueName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the queue within the shared storage account that messages will be dropped into"
+      }
+    },
+    "appInsights01Name": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceDataApiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceFundingApiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServicePayApiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServicePayUiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceBackofficeUiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServicePCEHubName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServicePayerUiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceDocsName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceProcessorName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceReceiptName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceHelmName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceDemoName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceLitleOnboardingApiName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "sqlserverName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name for the SQL server; must contain only letters, numbers, and hyphens."
+      }
+    },
+    "hexeaDBConnectionUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "The username for the connection string to the hexea db"
+      }
+    },
+    "hexeaDBConnectionUserPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The username for the connection string to the hexea db"
+      }
+    },
+    "sqlAdministratorLogin": {
+      "type": "string",
+      "metadata": {
+        "description": "The admin (sa) user of the SQL Server. NOTE: DO NOT USE THIS in a connection string. If a conn string is needed by this profile use hexeaDBConnectionUserName instead, even if you intend to use the same value. "
+      }
+    },
+    "sqlAdministratorLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password of the admin user of the SQL Server. NOTE: DO NOT USE THIS in a connection string. If a conn string is needed by this profile use hexeaDBConnectionUserPassword instead, even if you intend to use the same value. "
+      }
+    },
+    "sqlAADAdministratorLogon": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the user or group from the associated AzureAD account that will have admin access to the SQL server"
+      }
+    },
+    "sqlAADAdministratorSID": {
+      "type": "string",
+      "metadata": {
+        "description": "The objectID of the user or group from the associated AzureAD account that will have admin access to the SQL server"
+      }
+    },
+    "azureADTenantID": {
+      "type": "string",
+      "metadata": {
+        "description": "This is the tennant ID for the AzureAD instance that service principals will be from. You can get this value with the get-azurermsubscription or get-azurermtenant command"
+      }
+    },
+    "zohoAuthToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The token used to authenticate to Zoho"
+      }
+    },
+    "siteIP": {
+      "type": "string",
+      "metadata": {
+        "description": "this is the IP that will be used for firewall rules to allow incoming access from the development site (HQ)"
+      }
+    },
+    "databaseName": {
+      "defaultValue": "",
+      "type": "string"
+    },
+    "appServiceAuthURI": {
+      "type": "string",
+      "metadata": {
+        "description": "This is the hostname (ONLY) for the authentication service, i.e. mysite.azurewebsites.net. Do NOT include preceeding https://"
+      }
+    },
+    "msTeamsURL": {
+      "type": "string",
+      "metadata": {
+        "description": "The full URL to communicate alerts to the Microsoft teams channel"
+      }
+    },
+    "litleHostedOnboardingURL": {
+      "type": "string",
+      "metadata": {
+        "description": "The full URL to talk to Vantiv Litle for onboarding"
+      }
+    },
+    "litleUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The username used when talking with Litle"
+      }
+    },
+    "litlePassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password used when talking with Litle"
+      }
+    },
+    "tagValueEnvironment": {
+      "type": "string",
+      "metadata": {
+        "description": "The tag value for tag Environment"
+      }
+    },
+    "tagValueOwner": {
+      "type": "string",
+      "metadata": {
+        "description": "The tag value for tag Owner"
+      }
+    }
+  },
+  "variables": {
+    "storageAccount01ResourceID": "[resourceId(parameters('storageAccount01ResourceGroup'),'Microsoft.Storage/storageAccounts/', parameters('storageAccount01Name'))]",
+    "appServiceDataApiURI": "[concat(parameters('appServiceDataApiName'),'.azurewebsites.net')]",
+    "appServiceFundingApiURI": "[concat(parameters('appServiceFundingApiName'),'.azurewebsites.net')]",
+    "appServiceProcessorURI": "[concat(parameters('appServiceProcessorName'),'.azurewebsites.net')]",
+    "appServicePayApiURI": "[concat(parameters('appServicePayApiName'),'.azurewebsites.net')]",
+    "appServicePayUiURI": "[concat(parameters('appServicePayUiName'),'.azurewebsites.net')]",
+    "appServicePCEHubURI": "[concat(parameters('appServicePCEHubName'),'.azurewebsites.net')]",
+    "appServicePayerUiURI": "[concat(parameters('appServicePayerUiName'),'.azurewebsites.net')]",
+    "appServiceReceiptURI": "[concat(parameters('appServiceReceiptName'),'.azurewebsites.net')]",
+    "appServiceHelmURI": "[concat(parameters('appServiceHelmName'),'.azurewebsites.net')]",
+    "appServiceLitleOnboardingApiURI": "[concat(parameters('appServiceLitleOnboardingApiName'),'.azurewebsites.net')]",
+    "onboardingURL": "[concat('https://',variables('appServiceLitleOnboardingApiURI'),'/onboarding')]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('sqlserverName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "SqlServer",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "apiVersion": "2014-04-01-preview",
+      "properties": {
+        "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+        "administratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]",
+        "externalAdministratorLogin": "[parameters('sqlAADAdministratorLogon')]",
+        "externalAdministratorSid": "[parameters('sqlAADAdministratorSID')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "name": "[parameters('databaseName')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "Database",
+            "environment": "[parameters('tagValueEnvironment')]",
+            "owner": "[parameters('tagValueOwner')]"
+          },
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[parameters('sqlserverName')]"
+          ],
+          "properties": {
+            "edition": "Basic",
+            "collation": "SQL_Latin1_General_CP1_CI_AS",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "Basic"
+          }
+        },
+        {
+          "type": "administrators",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[parameters('sqlserverName')]"
+          ],
+          "location": "[resourceGroup().location]",
+          "name": "ActiveDirectory",
+          "properties": {
+            "administratorType": "ActiveDirectory",
+            "login": "[parameters('sqlAADAdministratorLogon')]",
+            "sid": "[parameters('sqlAADAdministratorSID')]",
+            "tenantId": "[parameters('azureADTenantID')]"
+          }
+        },
+        {
+          "type": "firewallrules",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[parameters('sqlserverName')]"
+          ],
+          "location": "[resourceGroup().location]",
+          "name": "AllowAllWindowsAzureIps",
+          "properties": {
+            "endIpAddress": "0.0.0.0",
+            "startIpAddress": "0.0.0.0"
+          }
+        },
+        {
+          "type": "firewallrules",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[parameters('sqlserverName')]"
+          ],
+          "location": "[resourceGroup().location]",
+          "name": "AllowSiteIp",
+          "properties": {
+            "endIpAddress": "[parameters('siteIP')]",
+            "startIpAddress": "[parameters('siteIP')]"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "name": "Hexea_App_Insights_Child_Deploy",
+      "resourceGroup": "[resourceGroup().name]",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "apiVersion": "2015-05-01",
+              "name": "[parameters('appInsights01Name')]",
+              "type": "Microsoft.Insights/components",
+              "kind": "web",
+              "location": "[resourceGroup().location]",
+              "tags": {
+                "displayName": "Hexea_App_Insights",
+                "environment": "[parameters('tagValueEnvironment')]",
+                "owner": "[parameters('tagValueOwner')]"
+              },
+              "properties": {
+                "ApplicationId": "[parameters('appInsights01Name')]"
+              },
+              "dependsOn": []
+            }
+          ],
+          "outputs": {
+            "AppInsights01ResourceID": {
+              "value": "[resourceId('Microsoft.Insights/components', parameters('appInsights01Name'))]",
+              "type": "string"
+            },
+            "AppInsights01InstrumentationKey": {
+              "value": "[reference(concat('Microsoft.Insights/components/', parameters('appInsights01Name')), '2015-05-01').InstrumentationKey]",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "Hexea_App_Insights_Child_Deploy"
+      ],
+      "kind": "api",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceDataApiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceDataApiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceDataApiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceDataApiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceDataApiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "cors": {
+            "allowedOrigins": []
+          }
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "type": "config",
+          "name": "connectionstrings",
+          "dependsOn": [
+            "[parameters('appServiceDataApiName')]"
+          ],
+          "properties": {
+            "Hexea": {
+              "value": "[concat('Server=tcp:',reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName,',1433;Initial Catalog=',parameters('databaseName'),';Persist Security Info=False;User ID=',parameters('hexeaDBConnectionUserName'),';Password=',parameters('hexeaDBConnectionUserPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+              "type": "SQLAzure"
+            },
+            "AzureStorageAccount": {
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccount01Name'),';AccountKey=',listKeys(variables('storageAccount01ResourceID'),  '2015-06-15').key1,';')]",
+              "type": 3
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceDataApiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "MobileAppsManagement_EXTENSION_VERSION": "latest",
+            "RecordingProvider:mode": "StorageTable",
+            "Env:ReceiptUrl": "[concat('https://',variables('appServiceReceiptURI'),'/')]",
+            "Authentication:ZoHo:AuthToken": "[parameters('zohoAuthToken')]",
+            "AllowedCorsOrigins": "[concat('https://',variables('appServicePayUiURI'),' https://',variables('appServicePCEHubURI'),' https://',variables('appServicePayerUiURI'),' https://',variables('appServiceHelmURI'),' http://localhost:3000 http://localhost:3040 http://localhost:3050 http://localhost:3060')]",
+            "Env:OnboardingURL": "[variables('onboardingURL')]",
+            "ApplicationInsights:ResourceID": "[reference('Hexea_App_Insights_Child_Deploy').outputs.AppInsights01ResourceID.value]",
+            "ApplicationInsights:InstrumentationKey": "[reference('Hexea_App_Insights_Child_Deploy').outputs.AppInsights01InstrumentationKey.value]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceDataApiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceDataApiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceDataApiName'))]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_DataAPI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceFundingApiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceFundingApiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceFundingApiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceFundingApiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceFundingApiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "cors": {
+            "allowedOrigins": [
+              "[concat('https://',parameters('appServiceHelmName'),'.azurewebsites.net')]"
+            ]
+          },
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "type": "config",
+          "name": "connectionstrings",
+          "dependsOn": [
+            "[parameters('appServiceFundingApiName')]"
+          ],
+          "properties": {
+            "FundingContext": {
+              "value": "[concat('Server=tcp:',reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName,',1433;Initial Catalog=',parameters('databaseName'),';Persist Security Info=False;User ID=',parameters('hexeaDBConnectionUserName'),';Password=',parameters('hexeaDBConnectionUserPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+              "type": "SQLAzure"
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceFundingApiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "DynamicPayoutTestMode": "3",
+            "DynamicPayoutUploadURL": "https://processaurous.revtrak.net/Latest/funding/instructions/",
+            "DataAPIBaseURL": "[concat('https://',variables('appServiceDataApiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceFundingApiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceFundingApiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceFundingApiName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceDataApiName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_FundingAPI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "api",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServicePayApiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServicePayApiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServicePayApiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServicePayApiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServicePayApiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "cors": {
+            "allowedOrigins": [
+              "[concat('https://',parameters('appServicePayUiName'),'.azurewebsites.net')]",
+              "[concat('https://',parameters('appServicePCEHubName'),'.azurewebsites.net')]",
+              "[concat('https://',parameters('appServicePayerUiName'),'.azurewebsites.net')]",
+              "https://cnopy.com",
+              "http://localhost:3000",
+              "http://localhost:3050",
+              "http://localhost:3060"
+            ]
+          }
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "type": "config",
+          "name": "connectionstrings",
+          "dependsOn": [
+            "[parameters('appServicePayApiName')]"
+          ],
+          "properties": {
+            "AzureWebJobsDashboard": {
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccount01Name'),';AccountKey=',listKeys(variables('storageAccount01ResourceID'),  '2015-06-15').key1,';')]",
+              "type": 3
+            },
+            "AzureWebJobsStorage": {
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccount01Name'),';AccountKey=',listKeys(variables('storageAccount01ResourceID'),  '2015-06-15').key1,';')]",
+              "type": 3
+            },
+            "StorageTable": {
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccount01Name'),';AccountKey=',listKeys(variables('storageAccount01ResourceID'),  '2015-06-15').key1,';')]",
+              "type": 3
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePayApiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "OnlineProcessing:URL": "[concat('https://',variables('appServiceProcessorURI'),'/litleonline')]",
+            "StorageTable:tableName": "PaymentRecords",
+            "RecordingProvider:mode": "StorageTable"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePayApiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePayApiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServicePayApiName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceFundingApiName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_PayAPI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServicePayUiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServicePayUiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServicePayUiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServicePayUiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServicePayUiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePayUiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "Env:PayButton": "[concat('https://',variables('appServicePayUiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePayUiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePayUiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServicePayUiName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePayApiName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_PaymentUI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceBackofficeUiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceBackofficeUiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceBackofficeUiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceBackofficeUiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceBackofficeUiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceBackofficeUiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceBackofficeUiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceBackofficeUiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceBackofficeUiName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePayUiName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_BackOfficeUI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServicePCEHubName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServicePCEHubName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServicePCEHubName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServicePCEHubName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServicePCEHubName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePCEHubName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "Env:ReceiptApi": "[concat('https://',variables('appServiceReceiptURI'),'/')]",
+            "Env:PayButton": "[concat('https://',variables('appServicePayUiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePCEHubName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePCEHubName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServicePCEHubName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceBackofficeUiName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_PCEHub",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServicePayerUiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServicePayerUiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServicePayerUiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServicePayerUiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServicePayerUiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePayerUiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "Env:ReceiptUrl": "[concat('https://',variables('appServiceReceiptURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServicePayerUiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePayerUiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServicePayerUiName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePCEHubName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_PayerUI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceDocsName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceDocsName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceDocsName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceDocsName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceDocsName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceDocsName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceDocsName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceDocsName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceDocsName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServicePayerUiName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_Documents",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "api",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceProcessorName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceProcessorName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceProcessorName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceProcessorName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceProcessorName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "cors": {
+            "allowedOrigins": [
+              "[concat('https://',parameters('appServicePayUiName'),'.azurewebsites.net')]",
+              "[concat('https://',parameters('appServicePCEHubName'),'.azurewebsites.net')]",
+              "[concat('https://',parameters('appServicePayerUiName'),'.azurewebsites.net')]"
+            ]
+          }
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceProcessorName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "MobileAppsManagement_EXTENSION_VERSION": "latest"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceProcessorName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceProcessorName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceProcessorName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceDocsName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_Processor",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceReceiptName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceReceiptName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceReceiptName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceReceiptName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceReceiptName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "cors": {
+            "allowedOrigins": [
+              "[concat('https://',parameters('appServicePCEHubName'),'.azurewebsites.net')]"
+            ]
+          },
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "type": "config",
+          "name": "connectionstrings",
+          "dependsOn": [
+            "[parameters('appServiceReceiptName')]"
+          ],
+          "properties": {
+            "AzureStorageAccount": {
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccount01Name'),';AccountKey=',listKeys(variables('storageAccount01ResourceID'),  '2015-06-15').key1,';')]",
+              "type": 3
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceReceiptName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "Email:Queue": "[parameters('emailDropStorageQueueName')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceReceiptName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceReceiptName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceReceiptName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceProcessorName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_Receipt",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceHelmName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceHelmName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceHelmName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceHelmName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceHelmName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceHelmName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "Env:PayButton": "[concat('https://',variables('appServicePayUiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceHelmName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceHelmName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceHelmName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceReceiptName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_Helm",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceDemoName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceDemoName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceDemoName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceDemoName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceDemoName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "appSettings": []
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceDemoName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "Env:PayButton": "[concat('https://',variables('appServicePayUiURI'),'/')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceDemoName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceDemoName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "SecurityPackHttpsRedirectPlusHeadersMed",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('appServiceDemoName'))]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceHelmName')),'/siteextensions/SecurityPackHttpsRedirectPlusHeadersMed')]"
+          ]
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_Demo",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "kind": "api",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('appServiceLitleOnboardingApiName')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "enabledHostNames": [
+          "[concat(parameters('appServiceLitleOnboardingApiName'),'.azurewebsites.net')]",
+          "[concat(parameters('appServiceLitleOnboardingApiName'),'.scm.azurewebsites.net')]"
+        ],
+        "hostNames": [
+          "[concat(parameters('appServiceLitleOnboardingApiName'),'.azurewebsites.net')]"
+        ],
+        "name": "[parameters('appServiceLitleOnboardingApiName')]",
+        "serverFarmId": "[parameters('appServicePlan01ID')]",
+        "siteConfig": {
+          "phpVersion": "off",
+          "remoteDebuggingEnabled": false,
+          "remoteDebuggingVersion": "VS2017",
+          "detailedErrorLoggingEnabled": true,
+          "scmType": "LocalGit",
+          "cors": {
+            "allowedOrigins": []
+          }
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "type": "config",
+          "name": "connectionstrings",
+          "dependsOn": [
+            "[parameters('appServiceLitleOnboardingApiName')]"
+          ],
+          "properties": {}
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "appsettings",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceLitleOnboardingApiName')]"
+          ],
+          "properties": {
+            "Teams:Url": "[parameters('msTeamsURL')]",
+            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.1",
+            "Authentication:Hexea:Authority": "[concat('https://',parameters('appServiceAuthURI'),'/')]",
+            "Env:DataApi": "[concat('https://',variables('appServiceDataApiURI'),'/')]",
+            "Env:PaymentApi": "[concat('https://',variables('appServicePayApiURI'),'/')]",
+            "Env:FundingApi": "[concat('https://',variables('appServiceFundingApiURI'),'/')]",
+            "litle:url": "[parameters('litleHostedOnboardingURL')]",
+            "litle:username": "[parameters('litleUsername')]",
+            "litle:password": "[parameters('litlePassword')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "type": "config",
+          "name": "logs",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('appServiceLitleOnboardingApiName')]",
+            "[concat(resourceId('Microsoft.Web/Sites', parameters('appServiceLitleOnboardingApiName')),'/config/appsettings')]"
+          ],
+          "properties": {
+            "applicationLogs": {
+              "fileSystem": {
+                "level": "Off"
+              },
+              "azureTableStorage": {
+                "level": "Off",
+                "sasUrl": null
+              },
+              "azureBlobStorage": {
+                "level": "Information",
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21
+              }
+            },
+            "httpLogs": {
+              "fileSystem": {
+                "retentionInMb": 35,
+                "retentionInDays": null,
+                "enabled": false
+              },
+              "azureBlobStorage": {
+                "sasUrl": "[parameters('sasAppLogsTokenURI')]",
+                "retentionInDays": 21,
+                "enabled": true
+              }
+            }
+          }
+        }
+      ],
+      "tags": {
+        "[concat('hidden-related:', parameters('appServicePlan01ID'))]": "empty",
+        "displayName": "WebApp_LitleOnboardingAPI",
+        "environment": "[parameters('tagValueEnvironment')]",
+        "owner": "[parameters('tagValueOwner')]"
+      },
+      "type": "Microsoft.Web/sites"
+    }
+  ],
+  "outputs": {
+    "DataAPIUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceDataApiName'))).hostnames[0])]"
+    },
+    "FundingAPIUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceFundingApiName'))).hostnames[0])]"
+    },
+    "PayAPIUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServicePayApiName'))).hostnames[0])]"
+    },
+    "PayUIUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServicePayUiName'))).hostnames[0])]"
+    },
+    "BackOfficeUIUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceBackofficeUiName'))).hostnames[0])]"
+    },
+    "PCEHubUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServicePCEHubName'))).hostnames[0])]"
+    },
+    "PayerUIUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServicePayerUiName'))).hostnames[0])]"
+    },
+    "DocsUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceDocsName'))).hostnames[0])]"
+    },
+    "ProcessorUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceProcessorName'))).hostnames[0])]"
+    },
+    "ReceiptUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceReceiptName'))).hostnames[0])]"
+    },
+    "HelmUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceHelmName'))).hostnames[0])]"
+    },
+    "DemoUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceDemoName'))).hostnames[0])]"
+    },
+    "HexeaToLitleOnboardingApiUri": {
+      "type": "string",
+      "value": "[concat('https://',reference(concat('Microsoft.Web/sites/', parameters('appServiceLitleOnboardingApiName'))).hostnames[0])]"
+    },
+    "sqlSvrFqdn": {
+      "type": "string",
+      "value": "[reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).fullyQualifiedDomainName]"
+    },
+    "sqlSvrname": {
+      "type": "string",
+      "value": "[parameters('sqlserverName')]"
+    },
+    "sqlSvrAdminLogin": {
+      "type": "string",
+      "value": "[reference(concat('Microsoft.Sql/servers/', parameters('sqlserverName'))).administratorLogin]"
+    }
+  }
+}

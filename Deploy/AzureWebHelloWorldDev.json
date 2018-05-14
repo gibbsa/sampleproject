@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "siteName": {
+            "value": "ContosoArmTest"
+        },
+        "environment": {
+            "value": "Dev"
+        },
+        "skuName": {
+            "value": "S1"
+        },
+        "sqlAdministratorLogin": {
+            "value": "SqlAdmin"
+        },
+        "sqlAdministratorLoginPassword": {
+            "value": "Pass@word#1"
+        },
+        "tests": {
+            "value": [
+              {
+                "name": "ContosoArmWebTest",
+                "timeout_secs": 30,
+                "expected": 200,
+                "failedLocationCount": 1,
+                "frequency_secs": 30,
+                "description": "Basic site availbility test.",
+                "guid": "fd16e5c0-6f7b-4eda-8e60-e591e736e0d9",
+                "locations": [{
+                  "Id": "us-il-ch1-azr"
+                }]
+              }
+            ]
+        }
+    }
+}
