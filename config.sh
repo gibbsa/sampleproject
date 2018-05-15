@@ -3,16 +3,16 @@
 # install dotnet core
 sudo wget -q packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
 sudo DEBIAN_FRONTEND=noninteractive dpkg -i packages-microsoft-prod.deb
-sudo apt-get install apt-transport-https
-sudo apt-get update
-sudo apt-get install dotnet-sdk-2.1.200
+sudo DEBIAN_FRONTEND=noninteractive apt-get install apt-transport-https
+sudo DEBIAN_FRONTEND=noninteractive apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get install dotnet-sdk-2.1.200
 
 # download application
 cd ~/
 git clone https://github.com/gibbsa/sampleproject.git
 
 # install nginx, update config file
-sudo apt-get install -y nginx
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
 sudo service nginx start
 sudo touch /etc/nginx/sites-available/default
 sudo wget https://raw.githubusercontent.com/gibbsa/sampleproject/master/default -O /etc/nginx/sites-available/default
