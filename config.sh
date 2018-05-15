@@ -21,4 +21,4 @@ sudo wget https://raw.githubusercontent.com/gibbsa/sampleproject/master/default 
 sudo nginx -s reload
 
 # run app
-/usr/bin/dotnet ./Sample App/bin/Debug/netcoreapp2.0/samplecoreapp.dll &
+/usr/bin/dotnet "./Sample App/bin/Debug/netcoreapp2.0/samplecoreapp.dll" &
