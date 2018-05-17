@@ -23,6 +23,7 @@ sudo service nginx start
 sudo touch /etc/nginx/sites-available/default
 sudo wget https://raw.githubusercontent.com/gibbsa/sampleproject/master/default -O /etc/nginx/sites-available/default
 sudo nginx -s reload
+sudo chmod +x /home/shawngib/sampleproject/config.sh
 
 sudo apt-get install supervisor
 #sudo wget https://raw.githubusercontent.com/gibbsa/sampleproject/master/sampleproject.conf
