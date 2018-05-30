@@ -1,2 +1,2 @@
 # sampleproject
-For testing pipeline s2
+For testing pipelines
