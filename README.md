@@ -1,2 +1,3 @@
 # sampleproject
-For testing pipeline yes
+For testing pipeline
+no
