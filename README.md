@@ -1,3 +1,3 @@
 # sampleproject
 For testing pipeline
-no
+yes
